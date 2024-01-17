@@ -3,14 +3,16 @@ import { processConsumer } from "../consumers/redis.consumer";
 import { onCompleted, onFailed, onStalled } from "../listeners/redis.listener";
 
 const processQueue = (body: any) => {
-  myQueue.add(
+  const queueName = 'test-queue';
+  const process = myQueue(queueName);
+  process.add(
     { data: body },
     { removeOnComplete: true, removeOnFail: true, delay: 1000, attempts: 2 }
   );
-  myQueue.process(processConsumer);
-  myQueue.on("failed", onFailed);
-  myQueue.on("completed", onCompleted);
-  myQueue.on("stalled", onStalled);
+  process.process(processConsumer);
+  process.on("failed", onFailed);
+  process.on("completed", onCompleted);
+  process.on("stalled", onStalled);
 };
 
 export { processQueue };
