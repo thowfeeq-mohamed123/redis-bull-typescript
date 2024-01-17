@@ -1,20 +1,25 @@
-import { myQueue } from "../config/redis.config";
+import { Job } from "bull";
 
-const onFailed = () => {
-  myQueue.on("failed", async (job, error) => {
-    console.log(
-      JSON.stringify({
-        status: "NOT CREDITED",
-        error,
-      })
-    );
-  });
+const onFailed = (job: Job, err: any) => {
+  console.log(
+    JSON.stringify({
+      jobId: job.id,
+      name: job.queue.name,
+      status: "NOT CREDITED",
+      message: err.message,
+      err,
+    })
+  );
 };
 
-const onCompleted = () => {
-  myQueue.on("completed", () => {
-    console.log("All employee salary was credited");
-  });
+const onCompleted = (job: Job) => {
+  console.log("All employee salary was credited");
+  console.info(`Job in ${job.queue.name} completed for jobId: ${job.id}`);
+  job.remove();
 };
 
-export { onFailed, onCompleted };
+const onStalled = (job: Job) => {
+  console.info(`Job in ${job.queue.name} stalled for: ${job.id}`);
+};
+
+export { onFailed, onCompleted, onStalled };

@@ -1,15 +1,16 @@
 import { myQueue } from "../config/redis.config";
 import { processConsumer } from "../consumers/redis.consumer";
-import { onCompleted, onFailed } from "../listeners/redis.listener";
+import { onCompleted, onFailed, onStalled } from "../listeners/redis.listener";
 
-const processQueue = async (body: any) => {
-  await myQueue.add(
+const processQueue = (body: any) => {
+  myQueue.add(
     { data: body },
-    { removeOnComplete: true, removeOnFail: true }
+    { removeOnComplete: true, removeOnFail: true, delay: 1000, attempts: 2 }
   );
-  await processConsumer();
-  await onFailed();
-  await onCompleted();
+  myQueue.process(processConsumer);
+  myQueue.on("failed", onFailed);
+  myQueue.on("completed", onCompleted);
+  myQueue.on("stalled", onStalled);
 };
 
 export { processQueue };
